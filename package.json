@@ -11,10 +11,10 @@
     "react-dom": "^18.2.0",
     "viem": "^2.7.13",
     "wagmi": "^2.5.7"
-  },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build"
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.5.0",
