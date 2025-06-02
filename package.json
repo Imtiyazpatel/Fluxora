@@ -15,7 +15,7 @@
   "dev": "vite",
   "build": "vite build",
   "preview": "vite preview"
-  },
+  }
   "devDependencies": {
     "@vitejs/plugin-react": "^4.5.0",
     "autoprefixer": "^10.4.21",
