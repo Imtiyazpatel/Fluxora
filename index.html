@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fluxora</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="output.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Premium Loading Screen -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-content">
+      <div class="loading-logo">
+        <span class="loading-text">Fluxora</span>
+        <div class="loading-bars">
+          <div class="loading-bar"></div>
+          <div class="loading-bar"></div>
+          <div class="loading-bar"></div>
+          <div class="loading-bar"></div>
+          <div class="loading-bar"></div>
+        </div>
+      </div>
+      <p class="loading-subtitle">Initializing Premium Experience...</p>
+    </div>
+  </div>
+
+  <!-- Floating F Letters -->
+  <div class="floating-f">F</div>
+  <div class="floating-f">F</div>
+  <div class="floating-f">F</div>
+  <div class="floating-f">F</div>
+  <div class="floating-f">F</div>
+  
+  <!-- Brand Logo -->
+  <div class="brand-logo">
+    <span class="brand-text">Fluxora</span>
+  </div>
+  
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+      <h1>Welcome to Fluxora</h1>
+      <p class="tagline">Where Tasks Turn Into Tokens.</p>
+      <p class="description">Join the decentralized platform transforming micro-efforts into real-world crypto rewards.</p>
+      
+      <!-- Key Features -->
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon" data-emoji="🎯">🎯</div>
+          <h3>Smart Quests</h3>
+          <p>Complete tasks and earn crypto rewards instantly</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" data-emoji="🔗">🔗</div>
+          <h3>Decentralized</h3>
+          <p>Built on blockchain technology for transparency</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" data-emoji="💰">💰</div>
+          <h3>Real Rewards</h3>
+          <p>Convert your efforts into tangible crypto assets</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <div class="container">
+    <!-- Wallet Connection Section -->
+    <div class="wallet-section">
+      <h2 class="section-title">Connect Your Wallet</h2>
+      <div id="wallet-container">
+        <div id="connect-button"></div>
+        <div id="account-info"></div>
+        <div id="network-info"></div>
+      </div>
+      <p id="status">Ready to connect wallet...</p>
+    </div>
+    
+    <!-- Stats Section -->
+    <div class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">2,847</div>
+          <div class="stat-label">Active Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">$127K</div>
+          <div class="stat-label">Rewards Distributed</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">95%</div>
+          <div class="stat-label">Success Rate</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Quest Form Section -->
+    <div id="quest-form-container" style="display: none;"></div>
+    
+    <!-- Quests Display Section -->
+    <div id="quests-section">
+      <h2 class="quests-title">Available Quests</h2>
+      <div class="quests-filter">
+        <button class="filter-btn active">All Quests</button>
+        <button class="filter-btn">High Reward</button>
+        <button class="filter-btn">Quick Tasks</button>
+        <button class="filter-btn">Trending</button>
+      </div>
+      <div id="quest-list"></div>
+    </div>
+  </div>
+
+  <!-- Footer Section -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <span class="footer-logo">Fluxora</span>
+        <p>Empowering the future of work through blockchain technology</p>
+      </div>
+      <div class="footer-links">
+        <div class="link-group">
+          <h4>Platform</h4>
+          <a href="#" class="footer-link">How it Works</a>
+          <a href="#" class="footer-link">Quest Types</a>
+          <a href="#" class="footer-link">Rewards</a>
+        </div>
+        <div class="link-group">
+          <h4>Support</h4>
+          <a href="#" class="footer-link">Documentation</a>
+          <a href="#" class="footer-link">FAQ</a>
+          <a href="#" class="footer-link">Contact</a>
+        </div>
+        <div class="link-group">
+          <h4>Community</h4>
+          <a href="#" class="footer-link">Discord</a>
+          <a href="#" class="footer-link">Twitter</a>
+          <a href="#" class="footer-link">GitHub</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2024 Fluxora. All rights reserved.</p>
+    </div>
+  </footer>
+  <script src="quest-form.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
