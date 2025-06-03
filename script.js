@@ -645,3 +645,23 @@ function optimizeForPerformance() {
 let scrollTimeout;
 function handleScroll() {
   if (scrollTimeout
+      // Automatically hide loading screen after page loads
+document.addEventListener("DOMContentLoaded", function () {
+  const loadingScreen = document.getElementById("loading-screen");
+  if (loadingScreen) {
+    loadingScreen.style.display = "none";
+  }
+
+  // You can also initialize quest manager or wallet here if needed
+  if (typeof QuestManager !== "undefined") {
+    const questManager = new QuestManager();
+    window.questManager = questManager;
+    questManager.initializeDefaultQuests();
+
+    // Attach the post quest form
+    new PostQuestForm("quest-form-container", (questData) => {
+      questManager.addQuest(questData);
+    });
+  }
+});
+  
