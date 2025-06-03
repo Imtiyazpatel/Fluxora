@@ -645,7 +645,8 @@ function optimizeForPerformance() {
 let scrollTimeout;
 function handleScroll() {
   if (scrollTimeout
-      // Automatically hide loading screen after page loads
+      
+    // Automatically hide loading screen after page loads
 document.addEventListener("DOMContentLoaded", function () {
   const loadingScreen = document.getElementById("loading-screen");
   if (loadingScreen) {
