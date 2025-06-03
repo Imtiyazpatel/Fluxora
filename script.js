@@ -1,9 +1,13 @@
-// Enhanced wallet connection with comprehensive error handling
+// Enhanced wallet connection with comprehensive error handling and cross-platform support
 let isConnected = false;
 let connectedAccount = null;
 let connectionAttempts = 0;
 let maxConnectionAttempts = 3;
 let eventListenersAdded = false;
+let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+let isAndroid = /Android/.test(navigator.userAgent);
+let touchSupported = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
 // Format address helper with validation
 function formatAddress(address) {
@@ -25,9 +29,25 @@ function safeGetElement(id) {
 async function connectWallet() {
   const statusEl = safeGetElement("status");
   
+  // Enhanced wallet detection for mobile devices
   if (!window.ethereum) {
+    let errorMessage = "No Ethereum wallet found. ";
+    
+    if (isMobile) {
+      if (isIOS) {
+        errorMessage += "Please install MetaMask mobile app or use Safari with a Web3 wallet extension.";
+      } else if (isAndroid) {
+        errorMessage += "Please install MetaMask mobile app or use Chrome/Firefox with Web3 wallet support.";
+      } else {
+        errorMessage += "Please install a mobile Web3 wallet like MetaMask.";
+      }
+    } else {
+      errorMessage += "Please install MetaMask or another Web3 wallet extension.";
+    }
+    
     if (statusEl) {
-      statusEl.innerText = "No Ethereum wallet found. Please install MetaMask or another Web3 wallet.";
+      statusEl.innerText = errorMessage;
+      statusEl.className = "error mobile-friendly";
     }
     return;
   }
@@ -42,16 +62,20 @@ async function connectWallet() {
   connectionAttempts++;
 
   try {
-    // Add loading state
+    // Add loading state with mobile-specific messaging
     if (statusEl) {
-      statusEl.innerText = "Connecting wallet...";
+      const loadingMsg = isMobile ? "Opening wallet app..." : "Connecting wallet...";
+      statusEl.innerText = loadingMsg;
       statusEl.className = "connecting";
     }
 
+    // Increased timeout for mobile devices
+    const timeoutDuration = isMobile ? 15000 : 10000;
+    
     const accounts = await Promise.race([
       window.ethereum.request({ method: "eth_requestAccounts" }),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Connection timeout')), 10000)
+        setTimeout(() => reject(new Error('Connection timeout')), timeoutDuration)
       )
     ]);
 
@@ -90,24 +114,35 @@ async function connectWallet() {
     console.error("Connection error:", error);
     
     if (statusEl) {
-      statusEl.className = "error";
+      statusEl.className = "error mobile-friendly";
       
+      // Enhanced error messages for different platforms
       if (error.code === 4001) {
-        statusEl.innerText = "Connection rejected by user.";
+        statusEl.innerText = isMobile ? 
+          "Connection cancelled. Please try again and approve in your wallet app." :
+          "Connection rejected by user.";
       } else if (error.code === -32002) {
-        statusEl.innerText = "Connection request already pending. Please check your wallet.";
+        statusEl.innerText = isMobile ?
+          "Wallet request pending. Please check your wallet app." :
+          "Connection request already pending. Please check your wallet.";
       } else if (error.message === 'Connection timeout') {
-        statusEl.innerText = "Connection timed out. Please try again.";
+        statusEl.innerText = isMobile ?
+          "Connection timed out. Please ensure your wallet app is running." :
+          "Connection timed out. Please try again.";
+      } else if (error.code === -32603) {
+        statusEl.innerText = "Internal wallet error. Please restart your wallet and try again.";
       } else {
-        statusEl.innerText = `Connection failed: ${error.message || "Unknown error"}`;
+        const safeErrorMsg = (error.message || "Unknown error").substring(0, 100);
+        statusEl.innerText = `Connection failed: ${safeErrorMsg}`;
       }
     }
     
-    // Auto-retry for certain errors
+    // Auto-retry for certain errors with exponential backoff
     if (error.code !== 4001 && connectionAttempts < maxConnectionAttempts) {
+      const retryDelay = Math.pow(2, connectionAttempts) * 1000; // Exponential backoff
       setTimeout(() => {
         if (statusEl) statusEl.innerText = "Retrying connection...";
-      }, 2000);
+      }, retryDelay);
     }
   }
 }
@@ -281,7 +316,7 @@ let questManager;
 let questForm;
 
 // Default quests data
-const defaultQuests = [
+window.defaultQuests = [
   {
     id: 1,
     title: "Promote Fluxora on Twitter",
@@ -305,28 +340,47 @@ const defaultQuests = [
   }
 ];
 
-// Premium loading screen
+// Premium loading screen with fallback
 function hideLoadingScreen() {
   const loadingScreen = document.getElementById('loading-screen');
   if (loadingScreen) {
+    // Reduce loading time and add fallback
     setTimeout(() => {
       loadingScreen.classList.add('hidden');
       setTimeout(() => {
         loadingScreen.style.display = 'none';
-      }, 800);
-    }, 2000);
+      }, 300);
+    }, 800); // Reduced from 2000ms to 800ms
   }
 }
 
-// Initialize the app with error handling
+// Fallback to force hide loading screen if it gets stuck
+function forceHideLoadingScreen() {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen && loadingScreen.style.display !== 'none') {
+    loadingScreen.style.display = 'none';
+    console.log('Force hidden loading screen');
+  }
+}
+
+// Initialize the app with error handling and platform detection
 document.addEventListener('DOMContentLoaded', () => {
   try {
+    // Platform-specific initialization
+    initializePlatformFeatures();
+    
     // Hide loading screen after content loads
     hideLoadingScreen();
     
+    // Force hide loading screen after 3 seconds if it's still visible
+    setTimeout(forceHideLoadingScreen, 3000);
+    
     const statusEl = safeGetElement('status');
     if (statusEl) {
-      statusEl.textContent = 'Ready to connect wallet...';
+      const readyMsg = isMobile ? 
+        'Ready to connect wallet app...' : 
+        'Ready to connect wallet...';
+      statusEl.textContent = readyMsg;
     }
     
     updateConnectionUI();
@@ -334,10 +388,26 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize quest system with error handling
     try {
-      questManager = new QuestManager();
-      questManager.initializeDefaultQuests();
+      if (typeof QuestManager !== 'undefined') {
+        questManager = new QuestManager();
+        questManager.initializeDefaultQuests();
+      }
     } catch (questError) {
-      console.error('Error initializing quest system:', questError);
+      console.warn('Quest system not available:', questError);
+    }
+    
+    // Initialize bubble experience with error handling
+    try {
+      bubbleExperience = new BubbleExperience();
+    } catch (bubbleError) {
+      console.warn('Bubble experience initialization failed:', bubbleError);
+    }
+    
+    // Initialize mouse input system with error handling
+    try {
+      mouseInput = new MouseInput();
+    } catch (mouseError) {
+      console.warn('Mouse input initialization failed:', mouseError);
     }
     
     // Add smooth scroll behavior
@@ -348,14 +418,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add global error handler
     window.addEventListener('error', (event) => {
       console.error('Global error:', event.error);
+      // Don't let errors block the UI
+      forceHideLoadingScreen();
     });
     
     window.addEventListener('unhandledrejection', (event) => {
       console.error('Unhandled promise rejection:', event.reason);
+      event.preventDefault(); // Prevent crash
+      // Don't let promise rejections block the UI
+      forceHideLoadingScreen();
     });
     
   } catch (error) {
     console.error('Error during initialization:', error);
+    // Force hide loading screen on any initialization error
+    forceHideLoadingScreen();
   }
 });
 
@@ -401,6 +478,170 @@ function updateConnectionUI() {
   }
 }
 
-// Make functions global for onclick handlers
-window.connectWallet = connectWallet;
-window.disconnectWallet = disconnectWallet;
+// Platform-specific initialization with performance optimization
+function initializePlatformFeatures() {
+  try {
+    // Add platform-specific CSS classes
+    document.body.classList.add(isMobile ? 'mobile' : 'desktop');
+    if (isIOS) document.body.classList.add('ios');
+    if (isAndroid) document.body.classList.add('android');
+    if (touchSupported) document.body.classList.add('touch-device');
+    
+    // Auto-detect low performance devices
+    const isLowPerformance = detectLowPerformanceDevice();
+    if (isLowPerformance) {
+      document.body.classList.add('low-performance-mode');
+      optimizeForPerformance();
+    }
+    
+    // Auto-adjust viewport based on device
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      if (isMobile) {
+        viewport.setAttribute('content', 
+          'width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes, viewport-fit=cover'
+        );
+      } else {
+        viewport.setAttribute('content', 
+          'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes'
+        );
+      }
+    }
+    
+    // Add zoom detection and handling
+    setupZoomHandling();
+    
+    // Add touch-friendly hover effects for mobile
+    if (touchSupported) {
+      document.addEventListener('touchstart', function() {}, true);
+    }
+    
+    // Handle orientation changes on mobile
+    if (isMobile && window.DeviceOrientationEvent) {
+      window.addEventListener('orientationchange', handleOrientationChange);
+    }
+    
+    // Add network status monitoring
+    if ('onLine' in navigator) {
+      window.addEventListener('online', handleNetworkChange);
+      window.addEventListener('offline', handleNetworkChange);
+    }
+    
+    // Auto-adjust for device capabilities
+    adjustForDeviceCapabilities();
+    
+  } catch (error) {
+    console.warn('Platform initialization error:', error);
+  }
+}
+
+// Setup zoom detection and handling
+function setupZoomHandling() {
+  try {
+    let zoomLevel = 1;
+    let isZoomed = false;
+    
+    function detectZoom() {
+      const newZoomLevel = Math.round((window.outerWidth / window.innerWidth) * 100) / 100;
+      
+      if (Math.abs(newZoomLevel - zoomLevel) > 0.1) {
+        zoomLevel = newZoomLevel;
+        const wasZoomed = isZoomed;
+        isZoomed = zoomLevel > 1.1 || zoomLevel < 0.9;
+        
+        if (isZoomed !== wasZoomed) {
+          document.body.classList.toggle('zoomed', isZoomed);
+          
+          // Disable animations when zoomed to prevent blinking
+          if (isZoomed) {
+            document.body.style.setProperty('--animation-state', 'paused');
+          } else {
+            document.body.style.setProperty('--animation-state', 'running');
+          }
+        }
+      }
+    }
+    
+    // Monitor zoom changes
+    window.addEventListener('resize', detectZoom);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(detectZoom, 500);
+    });
+    
+    // Initial detection
+    detectZoom();
+    
+  } catch (error) {
+    console.warn('Zoom handling setup error:', error);
+  }
+}
+
+// Auto-adjust for device capabilities
+function adjustForDeviceCapabilities() {
+  try {
+    // Detect device performance level
+    const isLowEndDevice = navigator.hardwareConcurrency <= 2 || 
+                          (navigator.deviceMemory && navigator.deviceMemory <= 2);
+    
+
+
+// Performance detection and optimization
+function detectLowPerformanceDevice() {
+  try {
+    // Check for low-end device indicators
+    const lowCPU = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2;
+    const lowRAM = navigator.deviceMemory && navigator.deviceMemory <= 2;
+    const slowConnection = navigator.connection && 
+                          (navigator.connection.effectiveType === 'slow-2g' || 
+                           navigator.connection.effectiveType === '2g');
+    const oldDevice = /Android [1-4]/.test(navigator.userAgent) || 
+                     /iPhone OS [1-9]_/.test(navigator.userAgent);
+    
+    return lowCPU || lowRAM || slowConnection || oldDevice;
+  } catch (error) {
+    console.warn('Performance detection error:', error);
+    return false;
+  }
+}
+
+function optimizeForPerformance() {
+  try {
+    // Remove floating elements
+    const floatingElements = document.querySelectorAll('.floating-f');
+    floatingElements.forEach(el => el.style.display = 'none');
+    
+    // Simplify animations
+    const style = document.createElement('style');
+    style.textContent = `
+      .low-performance-mode * {
+        animation-duration: 0s !important;
+        transition-duration: 0.1s !important;
+      }
+      .low-performance-mode .feature-card {
+        backdrop-filter: none !important;
+        background: rgba(15, 23, 42, 0.95) !important;
+      }
+      .low-performance-mode .loading-screen {
+        animation: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Reduce loading screen time
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+      }, 500);
+    }
+    
+    console.log('Performance optimizations applied');
+  } catch (error) {
+    console.warn('Performance optimization error:', error);
+  }
+}
+
+// Throttle scroll events for better performance
+let scrollTimeout;
+function handleScroll() {
+  if (scrollTimeout
