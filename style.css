@@ -29,7 +29,7 @@ body::before {
   z-index: -1;
 }
 
-/* Minimal loading screen */
+/* Minimal loading screen with deployment optimization */
 .loading-screen {
   position: fixed;
   top: 0;
@@ -41,13 +41,29 @@ body::before {
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
 .loading-screen.hidden {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  display: none !important;
+}
+
+/* Force hide loading screen for deployment environments */
+@media (min-width: 1px) {
+  .loading-screen {
+    animation: autoHideLoading 1s ease-in-out 2s forwards;
+  }
+}
+
+@keyframes autoHideLoading {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    display: none;
+  }
 }
 
 .loading-content {
@@ -181,7 +197,7 @@ body::before {
 /* Hero section - clean and minimal */
 .hero-section {
   min-height: 100vh;
-  display: none;
+  display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
@@ -1071,26 +1087,4 @@ button:hover {
     opacity: 0.3;
   }
   100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-@keyframes bubblePulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.2;
-  }
-}
-
-/* Minimal animations */
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
+    transform
