@@ -665,4 +665,21 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 });
+
+  document.addEventListener("DOMContentLoaded", function () {
+  const loader = document.getElementById("loading-screen");
+  if (loader) {
+    loader.style.transition = "opacity 0.5s ease";
+    loader.style.opacity = 0;
+    setTimeout(() => {
+      loader.style.display = "none";
+
+      // Optional: reveal other sections
+      const app = document.querySelector(".hero-section");
+      if (app) app.style.display = "block";
+    }, 500);
+  } else {
+    console.warn("⚠️ Loading screen not found.");
+  }
+});
   
