@@ -340,40 +340,75 @@ window.defaultQuests = [
   }
 ];
 
-// Premium loading screen with fallback
+// Enhanced loading screen with deployment optimization
 function hideLoadingScreen() {
   const loadingScreen = document.getElementById('loading-screen');
-  if (loadingScreen) {
-    // Reduce loading time and add fallback
-    setTimeout(() => {
-      loadingScreen.classList.add('hidden');
-      setTimeout(() => {
+  if (loadingScreen && !loadingScreen.classList.contains('hidden')) {
+    try {
+      // Immediate hide for deployment environments
+      if (window.location.hostname.includes('vercel') || 
+          window.location.hostname.includes('replit') ||
+          window.location.protocol === 'https:') {
         loadingScreen.style.display = 'none';
-      }, 300);
-    }, 800); // Reduced from 2000ms to 800ms
+        return;
+      }
+      
+      // Shorter loading time for better UX
+      setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        setTimeout(() => {
+          if (loadingScreen) {
+            loadingScreen.style.display = 'none';
+          }
+        }, 200);
+      }, 300); // Further reduced to 300ms
+    } catch (error) {
+      console.warn('Error hiding loading screen:', error);
+      forceHideLoadingScreen();
+    }
   }
 }
 
-// Fallback to force hide loading screen if it gets stuck
+// Multiple fallback methods to ensure loading screen never gets stuck
 function forceHideLoadingScreen() {
-  const loadingScreen = document.getElementById('loading-screen');
-  if (loadingScreen && loadingScreen.style.display !== 'none') {
-    loadingScreen.style.display = 'none';
-    console.log('Force hidden loading screen');
+  try {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+      loadingScreen.style.display = 'none';
+      loadingScreen.style.visibility = 'hidden';
+      loadingScreen.style.opacity = '0';
+      loadingScreen.classList.add('hidden');
+      console.log('Force hidden loading screen');
+    }
+  } catch (error) {
+    console.error('Error force hiding loading screen:', error);
   }
 }
 
-// Initialize the app with error handling and platform detection
+// Initialize the app with robust error handling and deployment optimization
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM Content Loaded - Starting initialization');
+  
+  // Immediate loading screen check for deployment
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen) {
+    // Force hide after minimal delay for deployment environments
+    setTimeout(forceHideLoadingScreen, 100);
+    // Additional fallback
+    setTimeout(forceHideLoadingScreen, 1000);
+  }
+  
   try {
-    // Platform-specific initialization
-    initializePlatformFeatures();
+    // Platform-specific initialization with error isolation
+    try {
+      initializePlatformFeatures();
+    } catch (platformError) {
+      console.warn('Platform features initialization failed:', platformError);
+      // Continue execution even if platform init fails
+    }
     
     // Hide loading screen after content loads
     hideLoadingScreen();
-    
-    // Force hide loading screen after 3 seconds if it's still visible
-    setTimeout(forceHideLoadingScreen, 3000);
     
     const statusEl = safeGetElement('status');
     if (statusEl) {
@@ -435,6 +470,31 @@ document.addEventListener('DOMContentLoaded', () => {
     forceHideLoadingScreen();
   }
 });
+
+// Additional immediate loading screen handling for deployment environments
+if (document.readyState === 'loading') {
+  // DOM not ready yet, wait for it
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(forceHideLoadingScreen, 50);
+  });
+} else {
+  // DOM already ready
+  setTimeout(forceHideLoadingScreen, 50);
+}
+
+// Emergency fallback - hide loading screen after page load regardless of errors
+window.addEventListener('load', () => {
+  setTimeout(forceHideLoadingScreen, 100);
+});
+
+// Additional safety net for deployment environments
+setTimeout(() => {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen && loadingScreen.style.display !== 'none') {
+    console.log('Emergency loading screen hide after 2 seconds');
+    forceHideLoadingScreen();
+  }
+}, 2000);
 
 // Enhanced connection UI with quest form
 function updateConnectionUI() {
@@ -581,113 +641,4 @@ function adjustForDeviceCapabilities() {
   try {
     // Detect device performance level
     const isLowEndDevice = navigator.hardwareConcurrency <= 2 || 
-                          (navigator.deviceMemory && navigator.deviceMemory <= 2);
-    
-
-
-// Performance detection and optimization
-function detectLowPerformanceDevice() {
-  try {
-    // Check for low-end device indicators
-    const lowCPU = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2;
-    const lowRAM = navigator.deviceMemory && navigator.deviceMemory <= 2;
-    const slowConnection = navigator.connection && 
-                          (navigator.connection.effectiveType === 'slow-2g' || 
-                           navigator.connection.effectiveType === '2g');
-    const oldDevice = /Android [1-4]/.test(navigator.userAgent) || 
-                     /iPhone OS [1-9]_/.test(navigator.userAgent);
-    
-    return lowCPU || lowRAM || slowConnection || oldDevice;
-  } catch (error) {
-    console.warn('Performance detection error:', error);
-    return false;
-  }
-}
-
-function optimizeForPerformance() {
-  try {
-    // Remove floating elements
-    const floatingElements = document.querySelectorAll('.floating-f');
-    floatingElements.forEach(el => el.style.display = 'none');
-    
-    // Simplify animations
-    const style = document.createElement('style');
-    style.textContent = `
-      .low-performance-mode * {
-        animation-duration: 0s !important;
-        transition-duration: 0.1s !important;
-      }
-      .low-performance-mode .feature-card {
-        backdrop-filter: none !important;
-        background: rgba(15, 23, 42, 0.95) !important;
-      }
-      .low-performance-mode .loading-screen {
-        animation: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-    
-    // Reduce loading screen time
-    const loadingScreen = document.getElementById('loading-screen');
-    if (loadingScreen) {
-      setTimeout(() => {
-        loadingScreen.style.display = 'none';
-      }, 500);
-    }
-    
-    console.log('Performance optimizations applied');
-  } catch (error) {
-    console.warn('Performance optimization error:', error);
-  }
-}
-
-// Throttle scroll events for better performance
-let scrollTimeout;
-function handleScroll() {
-  if (scrollTimeout
-      
-    // Automatically hide loading screen after page loads
-document.addEventListener("DOMContentLoaded", function () {
-  const loadingScreen = document.getElementById("loading-screen");
-  if (loadingScreen) {
-    loadingScreen.style.display = "none";
-  }
-
-  // You can also initialize quest manager or wallet here if needed
-  if (typeof QuestManager !== "undefined") {
-    const questManager = new QuestManager();
-    window.questManager = questManager;
-    questManager.initializeDefaultQuests();
-
-    // Attach the post quest form
-    new PostQuestForm("quest-form-container", (questData) => {
-      questManager.addQuest(questData);
-    });
-  }
-});
-
-  document.addEventListener("DOMContentLoaded", function () {
-  const loader = document.getElementById("loading-screen");
-  if (loader) {
-    loader.style.transition = "opacity 0.5s ease";
-    loader.style.opacity = 0;
-    setTimeout(() => {
-      loader.style.display = "none";
-
-      // Optional: reveal other sections
-      const app = document.querySelector(".hero-section");
-      if (app) app.style.display = "block";
-    }, 500);
-  } else {
-    console.warn("⚠️ Loading screen not found.");
-  }
-});
-
-  setTimeout(() => {
-  const loadingScreen = document.getElementById('loading-screen');
-  if (loadingScreen && loadingScreen.style.display !== 'none') {
-    loadingScreen.style.display = 'none';
-    console.log('✅ Forced loading screen hide fallback');
-  }
-}, 4000);
-  
+                          (navigator.deviceM
