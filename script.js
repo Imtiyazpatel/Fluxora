@@ -682,4 +682,12 @@ document.addEventListener("DOMContentLoaded", function () {
     console.warn("⚠️ Loading screen not found.");
   }
 });
+
+  setTimeout(() => {
+  const loadingScreen = document.getElementById('loading-screen');
+  if (loadingScreen && loadingScreen.style.display !== 'none') {
+    loadingScreen.style.display = 'none';
+    console.log('✅ Forced loading screen hide fallback');
+  }
+}, 4000);
   
